@@ -57,6 +57,10 @@ class Cue(object):
     channels = []
     fade_time = 0
 
+    def __init__(self, cue_number, fade_time):
+        self.cue_number = cue_number
+        self.fade_time = fade_time
+
     def __repr__(self):
         return_string = ('Cue(cue_number=%s, fade_time=%s)'
                          % (repr(self.cue_number), repr(self.fade_time)))
@@ -79,7 +83,11 @@ class Cue(object):
 
     def remove_channel(self, channel_number):
         """ Remove channel from cue """
-        self.channels = [channel for channel in self.channels if channel.channel_number != channel_number]
+        new_channels = []
+        for channel in self.channels:
+            if channel.channel_number != channel_number:
+                new_channels.append(channel)
+        self.channels = new_channels
 
     def modify_channel(self, channel_number, target_value):
         """ Modify channel if exists """
@@ -89,6 +97,10 @@ class Cue(object):
 
 
 class CueRunning(Cue):
+
+    def __init__(self, cue):
+        super(CueRunning, self).__init__(cue.cue_number, cue.fade_time)
+        self.channels = cue.channels
 
     def step_channels(self):
         """ Trigger step on all channels """
@@ -156,10 +168,20 @@ class CueList(object):
 # channel1 = ChannelTarget(1,0)
 # print channel1
 
-cue1 = Cue()
+cue1 = Cue(1, 5)
 cue1.add_channel(1, 0)
 cue1.add_channel(2, 1)
 cue1.remove_channel(1)
-cue1.step_channels()
-
+cue1running = CueRunning(cue1)
 print cue1
+print cue1running
+
+# cue1.add_channel(3, 5)
+# print cue1
+# print cue1running
+
+# cue1running.step_channels()
+# print cue1
+
+# cue1running.step_channels()
+# print cue1
