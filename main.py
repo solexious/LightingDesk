@@ -66,7 +66,7 @@ class Cue(object):
                          % (repr(self.cue_number), repr(self.fade_time)))
 
         for channel in self.channels:
-            return_string = return_string + '\n' + str(channel)
+            return_string = return_string + '\n\t' + str(channel)
 
         return return_string
 
@@ -114,6 +114,23 @@ class CueRunning(Cue):
 
 class CueList(object):
     cue_list = []
+    cue_list_number = 0
+
+    def __init__(self, cue_list_number):
+        self.cue_list_number = cue_list_number
+
+    def __repr__(self):
+        return_string = ('CueList(cue_list_number=%s)'
+                         % (repr(self.cue_list_number)))
+
+        for cue in self.cue_list:
+            return_string = return_string + ('\n\tCue(cue_number=%s, fade_time=%s)'
+                                             % (repr(cue.cue_number), repr(cue.fade_time)))
+
+            for channel in cue.channels:
+                return_string = return_string + '\n\t\t' + str(channel)
+
+        return return_string
 
     def add_cue(self, cue):
         """ Add cue to cue list """
@@ -121,7 +138,11 @@ class CueList(object):
 
     def remove_cue(self, cue_number):
         """ Remove cue from cue list"""
-        self.cue_list = [x for x in self.cue_list if self.cue_list[x].cue_number != cue_number]
+        new_cue_list = []
+        for cue in self.cue_list:
+            if cue.cue_number != cue_number:
+                new_cue_list.append(cue)
+        self.cue_list = new_cue_list
 
     def step_cues(self):
         """ Step all cues in cue list """
@@ -171,10 +192,20 @@ class CueList(object):
 cue1 = Cue(1, 5)
 cue1.add_channel(1, 0)
 cue1.add_channel(2, 1)
-cue1.remove_channel(1)
-cue1running = CueRunning(cue1)
 print cue1
-print cue1running
+
+cue_list1 = CueList(1)
+cue_list1.add_cue(cue1)
+
+print "\n*****\n"
+print cue_list1
+
+cue_list1.remove_cue(1)
+
+print "\n*****\n"
+print cue_list1
+
+# print cue_list1
 
 # cue1.add_channel(3, 5)
 # print cue1
