@@ -23,7 +23,7 @@ class ChannelTarget(Channel):
     def __init__(self, channel_number, target_value):
         super(ChannelTarget, self).__init__(channel_number, 0)
         self.target_value = target_value
-        self.step_amount = 1
+        self.step_amount = 0
 
     def __repr__(self):
         return ('ChannelTarget(channel_number=%s, channel_value=%s, target_value=%s, step_amount=%s)'
@@ -136,7 +136,11 @@ class CueRunning(Cue):
 
     def remove_static_channels(self):
         """ Remove all channels at their target values """
-        self.channels = [x for x in self.channels if self.channels[x].direction() != STATIC]
+        new_channels = []
+        for channel in self.channels:
+            if channel.direction() != STATIC:
+                new_channels.append(channel)
+        self.channels = new_channels
 
     def from_json(self, json_string):
         loaded_cue = json.loads(json_string)
@@ -260,3 +264,7 @@ class CueListRunning(CueList):
                         static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             return static_channels
+
+    def remove_static_channels(self):
+        for cue in self.cues:
+            cue.remove_static_channels()
