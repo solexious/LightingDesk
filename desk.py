@@ -23,7 +23,7 @@ class ChannelTarget(Channel):
     def __init__(self, channel_number, target_value):
         super(ChannelTarget, self).__init__(channel_number, 0)
         self.target_value = target_value
-        self.step_amount = 0
+        self.step_amount = 1
 
     def __repr__(self):
         return ('ChannelTarget(channel_number=%s, channel_value=%s, target_value=%s, step_amount=%s)'
@@ -120,6 +120,15 @@ class CueRunning(Cue):
         super(CueRunning, self).__init__(cue.cue_number, cue.fade_time)
         self.channels = cue.channels
 
+    def __repr__(self):
+        return_string = ('CueRunning(cue_number=%s, fade_time=%s)'
+                         % (repr(self.cue_number), repr(self.fade_time)))
+
+        for channel in self.channels:
+            return_string = return_string + '\n\t' + str(channel)
+
+        return return_string
+
     def step_channels(self):
         """ Trigger step on all channels """
         for channel in self.channels:
@@ -128,6 +137,14 @@ class CueRunning(Cue):
     def remove_static_channels(self):
         """ Remove all channels at their target values """
         self.channels = [x for x in self.channels if self.channels[x].direction() != STATIC]
+
+    def from_json(self, json_string):
+        loaded_cue = json.loads(json_string)
+        cue_copy = Cue(loaded_cue["cue_number"], loaded_cue["fade_time"])
+        for channel in loaded_cue["channels"]:
+            cue_copy.add_channel(channel["channel_number"], channel["target_value"])
+        cue_copy_running = CueRunning(cue_copy)
+        return cue_copy_running
 
 
 class CueList(object):
@@ -160,6 +177,47 @@ class CueList(object):
             if cue.cue_number != cue_number:
                 new_cues.append(cue)
         self.cues = new_cues
+
+    def to_json(self):
+        return_string = "{\"cue_list_number\": " + str(self.cue_list_number) + ", \"cues\": "
+        return_string = return_string + "["
+        for cue in self.cues:
+            return_string = return_string + cue.to_json()
+            return_string = return_string + ","
+        return_string = return_string[:-1] + "]}"
+
+        return return_string
+
+    def from_json(self, json_string):
+        loaded_cue_list = json.loads(json_string)
+        cue_list_copy = CueList(loaded_cue_list["cue_list_number"])
+        cue_to_add = Cue(0, 0)
+        for cue in loaded_cue_list["cues"]:
+            cue_list_copy.add_cue(cue_to_add.from_json(json.dumps(cue)))
+        return cue_list_copy
+
+
+class CueListRunning(CueList):
+
+    def __init__(self, cue_list):
+        super(CueListRunning, self).__init__(cue_list.cue_list_number)
+        self.cues = []
+        test_cue = CueRunning(Cue(0, 0))
+        for cue in cue_list.cues:
+            self.cues.append(test_cue.from_json(cue.to_json()))
+
+    def __repr__(self):
+        return_string = ('CueListRunning(cue_list_number=%s)'
+                         % (repr(self.cue_list_number)))
+
+        for cue in self.cues:
+            return_string = return_string + ('\n\tCueRunning(cue_number=%s, fade_time=%s)'
+                                             % (repr(cue.cue_number), repr(cue.fade_time)))
+
+            for channel in cue.channels:
+                return_string = return_string + '\n\t\t' + str(channel)
+
+        return return_string
 
     def step_cues(self):
         """ Step all cues in cue list """
@@ -202,21 +260,3 @@ class CueList(object):
                         static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             return static_channels
-
-    def to_json(self):
-        return_string = "{\"cue_list_number\": " + str(self.cue_list_number) + ", \"cues\": "
-        return_string = return_string + "["
-        for cue in self.cues:
-            return_string = return_string + cue.to_json()
-            return_string = return_string + ","
-        return_string = return_string[:-1] + "]}"
-
-        return return_string
-
-    def from_json(self, json_string):
-        loaded_cue_list = json.loads(json_string)
-        cue_list_copy = CueList(loaded_cue_list["cue_list_number"])
-        cue_to_add = Cue(0, 0)
-        for cue in loaded_cue_list["cues"]:
-            cue_list_copy.add_cue(cue_to_add.from_json(json.dumps(cue)))
-        return cue_list_copy
