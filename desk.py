@@ -203,25 +203,3 @@ class CueList(object):
                         static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             return static_channels
-
-
-# channel1 = ChannelTarget(1,0)
-# print channel1
-
-cue1 = Cue(1, 5)
-cue1.add_channel(1, 0)
-cue1.add_channel(2, 1)
-# print cue1
-
-cue_list1 = CueList(1)
-cue_list1.add_cue(cue1)
-
-cue1.add_channel(3, 10)
-cue1copy = cue1.from_json(cue1.to_json())
-cue1.add_channel(10, 50)
-
-print "*** Original ***"
-print cue1
-
-print "*** Copy ***"
-print cue1copy
