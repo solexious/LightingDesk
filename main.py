@@ -1,3 +1,5 @@
+import json
+
 DOWN = -1
 UP = 1
 STATIC = 0
@@ -6,8 +8,6 @@ LTP = 1
 
 
 class Channel(object):
-    channel_number = 0
-    channel_value = 0
 
     def __init__(self, channel_number, channel_value):
         self.channel_number = channel_number
@@ -19,12 +19,11 @@ class Channel(object):
 
 
 class ChannelTarget(Channel):
-    target_value = 0
-    step_amount = 1
 
     def __init__(self, channel_number, target_value):
         super(ChannelTarget, self).__init__(channel_number, 0)
         self.target_value = target_value
+        self.step_amount = 0
 
     def __repr__(self):
         return ('ChannelTarget(channel_number=%s, channel_value=%s, target_value=%s, step_amount=%s)'
@@ -51,15 +50,17 @@ class ChannelTarget(Channel):
             if self.channel_value < self.target_value:
                 self.channel_value = self.target_value
 
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True)
+
 
 class Cue(object):
-    cue_number = 0
-    channels = []
-    fade_time = 0
 
     def __init__(self, cue_number, fade_time):
         self.cue_number = cue_number
         self.fade_time = fade_time
+        self.channels = []
 
     def __repr__(self):
         return_string = ('Cue(cue_number=%s, fade_time=%s)'
@@ -95,6 +96,24 @@ class Cue(object):
             if channel.channel_number == channel_number:
                 channel.target_value = target_value
 
+    def to_json(self):
+        return_string = "{\"cue_number\": " + str(self.cue_number) + ", \"channels\": "
+        return_string = return_string + "["
+        for channel in self.channels:
+            return_string = return_string + channel.to_json()
+            return_string = return_string + ","
+        return_string = return_string[:-1] + "], \"fade_time\": " + str(self.fade_time) + "}"
+
+        return return_string
+
+    def from_json(self, json_string):
+        loaded_cue = json.loads(json_string)
+        cue_copy = Cue(loaded_cue["cue_number"], loaded_cue["fade_time"])
+        for channel in loaded_cue["channels"]:
+            cue_copy.add_channel(channel["channel_number"], channel["target_value"])
+        print "From json called"
+        return cue_copy
+
 
 class CueRunning(Cue):
 
@@ -113,11 +132,10 @@ class CueRunning(Cue):
 
 
 class CueList(object):
-    cue_list = []
-    cue_list_number = 0
 
     def __init__(self, cue_list_number):
         self.cue_list_number = cue_list_number
+        self.cue_list = []
 
     def __repr__(self):
         return_string = ('CueList(cue_list_number=%s)'
@@ -186,33 +204,24 @@ class CueList(object):
 
             return static_channels
 
+
 # channel1 = ChannelTarget(1,0)
 # print channel1
 
 cue1 = Cue(1, 5)
 cue1.add_channel(1, 0)
 cue1.add_channel(2, 1)
-print cue1
+# print cue1
 
 cue_list1 = CueList(1)
 cue_list1.add_cue(cue1)
 
-print "\n*****\n"
-print cue_list1
+cue1.add_channel(3, 10)
+cue1copy = cue1.from_json(cue1.to_json())
+cue1.add_channel(10, 50)
 
-cue_list1.remove_cue(1)
+print "*** Original ***"
+print cue1
 
-print "\n*****\n"
-print cue_list1
-
-# print cue_list1
-
-# cue1.add_channel(3, 5)
-# print cue1
-# print cue1running
-
-# cue1running.step_channels()
-# print cue1
-
-# cue1running.step_channels()
-# print cue1
+print "*** Copy ***"
+print cue1copy
