@@ -268,3 +268,8 @@ class CueListRunning(CueList):
     def remove_static_channels(self):
         for cue in self.cues:
             cue.remove_static_channels()
+
+    def remove_empty_cues(self):
+        for cue in self.cues:
+            if len(cue.channels) == 0:
+                self.remove_cue(cue.cue_number)
