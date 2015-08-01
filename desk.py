@@ -111,7 +111,6 @@ class Cue(object):
         cue_copy = Cue(loaded_cue["cue_number"], loaded_cue["fade_time"])
         for channel in loaded_cue["channels"]:
             cue_copy.add_channel(channel["channel_number"], channel["target_value"])
-        print "From json called"
         return cue_copy
 
 
@@ -135,13 +134,13 @@ class CueList(object):
 
     def __init__(self, cue_list_number):
         self.cue_list_number = cue_list_number
-        self.cue_list = []
+        self.cues = []
 
     def __repr__(self):
         return_string = ('CueList(cue_list_number=%s)'
                          % (repr(self.cue_list_number)))
 
-        for cue in self.cue_list:
+        for cue in self.cues:
             return_string = return_string + ('\n\tCue(cue_number=%s, fade_time=%s)'
                                              % (repr(cue.cue_number), repr(cue.fade_time)))
 
@@ -152,33 +151,33 @@ class CueList(object):
 
     def add_cue(self, cue):
         """ Add cue to cue list """
-        self.cue_list.append(cue)
+        self.cues.append(cue)
 
     def remove_cue(self, cue_number):
         """ Remove cue from cue list"""
-        new_cue_list = []
-        for cue in self.cue_list:
+        new_cues = []
+        for cue in self.cues:
             if cue.cue_number != cue_number:
-                new_cue_list.append(cue)
-        self.cue_list = new_cue_list
+                new_cues.append(cue)
+        self.cues = new_cues
 
     def step_cues(self):
         """ Step all cues in cue list """
-        for cue in self.cue_list:
+        for cue in self.cues:
             cue.step_channels()
 
     def merge_cue_levels(self, mode):
         """ Merge and return all running cues into one result """
-        if len(self.cue_list) == 1:
+        if len(self.cues) == 1:
             # If we have one running cue, no merge needed, just return this cue channel set
             static_channels = []
 
-            for channel in self.cue_list[0].channels:
+            for channel in self.cues[0].channels:
                 static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             return static_channels
 
-        if len(self.cue_list) == 0:
+        if len(self.cues) == 0:
             # If we have no running cues, return an empty channel list
             return []
 
@@ -187,12 +186,12 @@ class CueList(object):
             # Get oldest running cue, convert to static values and to use as base
             static_channels = []
 
-            for channel in self.cue_list[0].channels:
+            for channel in self.cues[0].channels:
                 static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             # Itterate over the channels in all other cues
             # if channel doesn't exist, add it, if it does check if new value is higher and if so update it
-            for cue in self.cue_list:
+            for cue in self.cues:
                 for channel in cue.channels:
                     found = False
                     for s_channel in static_channels:
@@ -203,3 +202,21 @@ class CueList(object):
                         static_channels.append(Channel(channel.channel_number, channel.channel_value))
 
             return static_channels
+
+    def to_json(self):
+        return_string = "{\"cue_list_number\": " + str(self.cue_list_number) + ", \"cues\": "
+        return_string = return_string + "["
+        for cue in self.cues:
+            return_string = return_string + cue.to_json()
+            return_string = return_string + ","
+        return_string = return_string[:-1] + "]}"
+
+        return return_string
+
+    def from_json(self, json_string):
+        loaded_cue_list = json.loads(json_string)
+        cue_list_copy = CueList(loaded_cue_list["cue_list_number"])
+        cue_to_add = Cue(0, 0)
+        for cue in loaded_cue_list["cues"]:
+            cue_list_copy.add_cue(cue_to_add.from_json(json.dumps(cue)))
+        return cue_list_copy
