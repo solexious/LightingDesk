@@ -203,12 +203,8 @@ class CueList(object):
 
 class CueListRunning(CueList):
 
-    def __init__(self, cue_list):
-        super(CueListRunning, self).__init__(cue_list.cue_list_number)
-        self.cues = []
-        test_cue = CueRunning(Cue(0, 0))
-        for cue in cue_list.cues:
-            self.cues.append(test_cue.from_json(cue.to_json()))
+    def __init__(self, cue_list_number):
+        super(CueListRunning, self).__init__(cue_list_number)
 
     def __repr__(self):
         return_string = ('CueListRunning(cue_list_number=%s)'
@@ -298,6 +294,7 @@ class CueListRunning(CueList):
                 self.remove_cue(cue.cue_number)
 
     def tick_cues(self, merge_type):
+        self.step_cues()
         return_merge = self.merge_cue_levels(merge_type)
         self.remove_static_channels()
         self.remove_empty_cues()
