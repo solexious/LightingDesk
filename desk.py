@@ -296,3 +296,9 @@ class CueListRunning(CueList):
         for cue in self.cues:
             if len(cue.channels) == 0:
                 self.remove_cue(cue.cue_number)
+
+    def tick_cues(self, merge_type):
+        return_merge = self.merge_cue_levels(merge_type)
+        self.remove_static_channels()
+        self.remove_empty_cues()
+        return return_merge
