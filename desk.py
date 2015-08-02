@@ -266,6 +266,28 @@ class CueListRunning(CueList):
 
             return static_channels
 
+        elif mode == LTP:
+            # Merge taking highest value for all channels
+            # Get oldest running cue, convert to static values and to use as base
+            static_channels = []
+
+            for channel in self.cues[0].channels:
+                static_channels.append(Channel(channel.channel_number, channel.channel_value))
+
+            # Itterate over the channels in all other cues
+            # if channel doesn't exist, add it, if it does check if new value is higher and if so update it
+            for cue in self.cues:
+                for channel in cue.channels:
+                    found = False
+                    for s_channel in static_channels:
+                        if s_channel.channel_number == channel.channel_number:
+                            s_channel.channel_value = channel.target_value
+                            found = True
+                    if found is False:
+                        static_channels.append(Channel(channel.channel_number, channel.channel_value))
+
+            return static_channels
+
     def remove_static_channels(self):
         for cue in self.cues:
             cue.remove_static_channels()
