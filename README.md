@@ -1,0 +1,1 @@
+# A theatrical lighting desk system writen in python
