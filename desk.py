@@ -258,7 +258,8 @@ class CueListRunning(CueList):
                     found = False
                     for s_channel in static_channels:
                         if s_channel.channel_number == channel.channel_number:
-                            s_channel.target_value = channel.target_value
+                            if s_channel.channel_value < channel.target_value:
+                                s_channel.channel_value = channel.target_value
                             found = True
                     if found is False:
                         static_channels.append(Channel(channel.channel_number, channel.channel_value))
