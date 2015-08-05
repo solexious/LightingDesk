@@ -1,10 +1,14 @@
+from __future__ import division
 import json
+import copy
 
 DOWN = -1
 UP = 1
 STATIC = 0
 HTP = 0
 LTP = 1
+
+FPS = 10
 
 
 class Channel(object):
@@ -49,6 +53,16 @@ class ChannelTarget(Channel):
             self.channel_value = self.channel_value - self.step_amount
             if self.channel_value < self.target_value:
                 self.channel_value = self.target_value
+
+    def set_running(self, current_channels, fade_time):
+        for channel in current_channels:
+            if channel.channel_number == self.channel_number:
+                self.channel_value = channel.channel_value
+                if self.direction() == UP:
+                    self.step_amount = (self.target_value - self.channel_value) / (FPS * fade_time)
+                elif self.direction() == DOWN:
+                    self.step_amount = (self.channel_value - self.target_value) / (FPS * fade_time)
+                break
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__,
@@ -150,6 +164,10 @@ class CueRunning(Cue):
         cue_copy_running = CueRunning(cue_copy)
         return cue_copy_running
 
+    def set_running(self, current_channels):
+        for channel in self.channels:
+            channel.set_running(current_channels, self.fade_time)
+
 
 class CueList(object):
 
@@ -218,6 +236,11 @@ class CueListRunning(CueList):
                 return_string = return_string + '\n\t\t' + str(channel)
 
         return return_string
+
+    def add_cue(self, cue, current_channels):
+        """ Add cue to cue list """
+        self.cues.append(CueRunning(copy.deepcopy(cue)))
+        self.cues[-1].set_running(current_channels)
 
     def step_cues(self):
         """ Step all cues in cue list """
