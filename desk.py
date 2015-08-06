@@ -12,7 +12,7 @@ FPS = 10
 
 
 class Channel(object):
-
+    """ A representation of a single channel and its current value """
     def __init__(self, channel_number, channel_value):
         self.channel_number = channel_number
         self.channel_value = channel_value
@@ -23,7 +23,7 @@ class Channel(object):
 
 
 class ChannelTarget(Channel):
-
+    """ An extension of Channel that adds control for stepping it in the correct direction to its target """
     def __init__(self, channel_number, target_value):
         super(ChannelTarget, self).__init__(channel_number, 0)
         self.target_value = target_value
@@ -72,7 +72,7 @@ class ChannelTarget(Channel):
 
 
 class Cue(object):
-
+    """ A cue holds channel info at their desired target values as well as fade time """
     def __init__(self, cue_number, fade_time):
         self.cue_number = cue_number
         self.fade_time = fade_time
@@ -133,7 +133,7 @@ class Cue(object):
 
 
 class CueRunning(Cue):
-
+    """ CueRunning is an extension of Cue allowing all channels to be moved to their target values """
     def __init__(self, cue):
         super(CueRunning, self).__init__(cue.cue_number, cue.fade_time)
         self.channels = cue.channels
@@ -176,7 +176,7 @@ class CueRunning(Cue):
 
 
 class CueList(object):
-
+    """ CueList holds a list of static cues ready to be handed to CueListRunning """
     def __init__(self, cue_list_number):
         self.cue_list_number = cue_list_number
         self.cues = []
@@ -228,7 +228,7 @@ class CueList(object):
 
 
 class CueListRunning(CueList):
-
+    """ CueListRunning expands CueList and allows stepping of all cues towards their goal as well as merging their output """
     def __init__(self, cue_list_number):
         super(CueListRunning, self).__init__(cue_list_number)
 
