@@ -96,7 +96,7 @@ class Cue(object):
         if found is True:
             self.modify_channel(channel_number, target_value)
         else:
-            self.channels.append(ChannelTarget(channel_number, target_value))
+            self.channels.append(Channel(channel_number, target_value))
 
     def remove_channel(self, channel_number):
         """ Remove channel from cue """
@@ -136,7 +136,8 @@ class CueRunning(Cue):
     """ CueRunning is an extension of Cue allowing all channels to be moved to their target values """
     def __init__(self, cue):
         super(CueRunning, self).__init__(cue.cue_number, cue.fade_time)
-        self.channels = cue.channels
+        for channel in cue.channels:
+            self.channels.append(ChannelTarget(channel.channel_number, channel.channel_value))
 
     def __repr__(self):
         return_string = ('CueRunning(cue_number=%s, fade_time=%s)'
@@ -333,3 +334,26 @@ class CueListRunning(CueList):
         self.remove_static_channels()
         self.remove_empty_cues()
         return return_merge
+
+
+class Universe(object):
+    """ A universe of channels """
+    def __init__(self, number_of_channels):
+        super(Universe, self).__init__()
+        self.channels = []
+
+        for x in range(number_of_channels):
+            self.channels.append(Channel(x + 1, 0))
+
+    def __repr__(self):
+        return_string = "Universe()"
+
+        for channel in self.channels:
+            return_string = return_string + '\n\t' + str(channel)
+
+        return return_string
+
+    def merge_values(self, channel_array):
+        """ Take a list of static channels and update out universe where needed """
+        for channel in channel_array:
+            self.channels[channel.channel_number - 1].channel_value = channel.channel_value
